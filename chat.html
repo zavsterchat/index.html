@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZavsterChat — Live Chat</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0A0A1F;
+      color: #FFFFFF;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto 20px;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      background: linear-gradient(90deg, #7C3AED, #EC4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .status { font-size: 14px; color: #A1A1B5; }
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .video-box {
+      aspect-ratio: 4/3;
+      background: #14142B;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      border: 2px solid #2A2A45;
+      position: relative;
+      overflow: hidden;
+    }
+    .video-box video { width: 100%; height: 100%; object-fit: cover; }
+    .video-label {
+      position: absolute; top: 16px; left: 16px;
+      background: rgba(0,0,0,0.6);
+      padding: 6px 12px; border-radius: 20px;
+      font-size: 13px; z-index: 2;
+    }
+    .video-placeholder {
+      color: #6B6B80; font-size: 16px;
+      text-align: center; padding: 20px;
+    }
+    .controls {
+      display: flex; justify-content: center;
+      gap: 16px; margin-top: 24px; flex-wrap: wrap;
+    }
+    .control-btn {
+      padding: 14px 28px; font-size: 16px; font-weight: 600;
+      color: white; background: #2A2A45; border: none;
+      border-radius: 50px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .control-btn:hover { background: #3A3A55; }
+    .control-btn.primary {
+      background: linear-gradient(90deg, #7C3AED, #EC4899);
+    }
+    .control-btn.danger { background: #EF4444; }
+    @media (max-width: 768px) {
+      .video-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">ZavsterChat</div>
+    <div class="status" id="status">Ready to chat</div>
+  </div>
+
+  <div class="video-grid">
+    <div class="video-box">
+      <div class="video-label">🔵 You</div>
+      <video id="localVideo" autoplay muted playsinline></video>
+      <div class="video-placeholder" id="localPlaceholder">Click "Start Camera" to begin</div>
+    </div>
+    <div class="video-box">
+      <div class="video-label">🔴 Stranger</div>
+      <div class="video-placeholder">Press "Start Chat" to find someone</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="control-btn primary" id="startBtn">▶ Start Camera</button>
+    <button class="control-btn" id="nextBtn">⏭ Next</button>
+    <button class="control-btn danger" id="reportBtn">⚠ Report</button>
+    <button class="control-btn" id="stopBtn">⏹ Stop</button>
+  </div>
+
+  <script>
+    const localVideo = document.getElementById('localVideo');
+    const localPlaceholder = document.getElementById('localPlaceholder');
+    const status = document.getElementById('status');
+    let localStream = null;
+
+    async function startCamera() {
+      try {
+        status.textContent = 'Requesting camera access...';
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: true, audio: true
+        });
+        localVideo.srcObject = localStream;
+        localPlaceholder.style.display = 'none';
+        status.textContent = 'Camera is on ✓';
+      } catch (err) {
+        status.textContent = 'Camera access denied';
+        alert('Could not access camera. Please allow camera permission in your browser.');
+        console.error(err);
+      }
+    }
+
+    function stopCamera() {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localVideo.srcObject = null;
+        localPlaceholder.style.display = 'block';
+        localStream = null;
+        status.textContent = 'Stopped';
+      }
+    }
+
+    document.getElementById('startBtn').addEventListener('click', startCamera);
+    document.getElementById('stopBtn').addEventListener('click', stopCamera);
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      status.textContent = 'Searching for someone...';
+    });
+  </script>
+</body>
+</html>
